@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVibe - Vibrant Video Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .progress-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ec4899;
+            cursor: pointer;
+        }
+        
+        .progress-bar::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ec4899;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 6px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ec4899;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ec4899;
+            cursor: pointer;
+            border: none;
+        }
+
+        .controls-overlay {
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: scale(1.05);
+        }
+
+        .card-hover:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 p-4 md:p-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-5xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">
+                    StreamVibe
+                </h1>
+                <p class="text-xl text-white/90 drop-shadow">Your Vibrant Video Experience</p>
+            </div>
+
+            <!-- Video Player Container -->
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl p-6 md:p-8 mb-6">
+                <div id="videoContainer" class="relative bg-black rounded-2xl overflow-hidden shadow-inner">
+                    <!-- Placeholder -->
+                    <div id="placeholder" class="aspect-video flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                        <div class="text-center">
+                            <svg class="w-20 h-20 text-pink-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-white text-xl mb-4">Upload a video to get started</p>
+                            <button onclick="document.getElementById('fileInput').click()" class="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-8 py-3 rounded-full font-semibold hover:from-pink-600 hover:to-orange-600 transition-all transform btn-hover shadow-lg">
+                                Choose Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Element -->
+                    <video id="videoPlayer" class="w-full aspect-video hidden"></video>
+
+                    <!-- Controls Overlay -->
+                    <div id="controls" class="controls-overlay absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 hidden opacity-100">
+                        <!-- Progress Bar -->
+                        <input type="range" id="progressBar" min="0" max="100" value="0" class="progress-bar mb-4 bg-white/20 rounded-lg">
+
+                        <!-- Control Buttons -->
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div class="flex items-center gap-4">
+                                <button id="skipBack" class="text-white hover:text-pink-400 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"></path>
+                                    </svg>
+                                </button>
+                                
+                                <button id="playPause" class="bg-gradient-to-r from-pink-500 to-orange-500 text-white p-3 rounded-full hover:from-pink-600 hover:to-orange-600 transition-all transform btn-hover shadow-lg">
+                                    <svg id="playIcon" class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"></path>
+                                    </svg>
+                                    <svg id="pauseIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"></path>
+                                    </svg>
+                                </button>
+
+                                <button id="skipForward" class="text-white hover:text-pink-400 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"></path>
+                                    </svg>
+                                </button>
+
+                                <span id="timeDisplay" class="text-white text-sm font-medium">
+                                    0:00 / 0:00
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <button id="muteToggle" class="text-white hover:text-pink-400 transition-colors">
+                                        <svg id="volumeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                                        </svg>
+                                        <svg id="muteIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                                        </svg>
+                                    </button>
+                                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" class="volume-slider">
+                                </div>
+
+                                <button id="fullscreen" class="text-white hover:text-pink-400 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Button Below Player -->
+                <div id="uploadAnother" class="mt-6 text-center hidden">
+                    <button onclick="document.getElementById('fileInput').click()" class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all transform btn-hover shadow-lg">
+                        Upload Different Video
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl transform transition-transform card-hover">
+                    <h3 class="text-2xl font-bold mb-2">🎬 HD Quality</h3>
+                    <p class="text-white/90">Crystal clear playback with smooth streaming</p>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl transform transition-transform card-hover">
+                    <h3 class="text-2xl font-bold mb-2">⚡ Fast Loading</h3>
+                    <p class="text-white/90">Optimized performance for instant playback</p>
+                </div>
+                <div class="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl transform transition-transform card-hover">
+                    <h3 class="text-2xl font-bold mb-2">🎨 Beautiful UI</h3>
+                    <p class="text-white/90">Stunning design with vibrant colors</p>
+                </div>
+            </div>
+
+            <!-- Hidden File Input -->
+            <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoPlayer');
+        const placeholder = document.getElementById('placeholder');
+        const controls = document.getElementById('controls');
+        const videoContainer = document.getElementById('videoContainer');
+        const fileInput = document.getElementById('fileInput');
+        const uploadAnother = document.getElementById('uploadAnother');
+        const progressBar = document.getElementById('progressBar');
+        const playPause = document.getElementById('playPause');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const skipBack = document.getElementById('skipBack');
+        const skipForward = document.getElementById('skipForward');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const muteToggle = document.getElementById('muteToggle');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const muteIcon = document.getElementById('muteIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const fullscreen = document.getElementById('fullscreen');
+
+        let isPlaying = false;
+        let controlsTimeout;
+
+        // File upload handler
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('video/')) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                placeholder.classList.add('hidden');
+                video.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                uploadAnother.classList.remove('hidden');
+            }
+        });
+
+        // Play/Pause
+        playPause.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+
+        function togglePlay() {
+            if (isPlaying) {
+                video.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            } else {
+                video.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            }
+            isPlaying = !isPlaying;
+        }
+
+        // Progress bar
+        video.addEventListener('timeupdate', function() {
+            const progress = (video.currentTime / video.duration) * 100;
+            progressBar.value = progress;
+            updateTimeDisplay();
+            updateProgressBarBackground();
+        });
+
+        progressBar.addEventListener('input', function() {
+            const time = (progressBar.value / 100) * video.duration;
+            video.currentTime = time;
+        });
+
+        function updateProgressBarBackground() {
+            const value = (video.currentTime / video.duration) * 100;
+            progressBar.style.background = `linear-gradient(to right, #ec4899 0%, #ec4899 ${value}%, rgba(255,255,255,0.2) ${value}%, rgba(255,255,255,0.2) 100%)`;
+        }
+
+        // Time display
+        function updateTimeDisplay() {
+            timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+        }
+
+        function formatTime(time) {
+            if (isNaN(time)) return '0:00';
+            const minutes = Math.floor(time / 60);
+            const seconds = Math.floor(time % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Skip buttons
+        skipBack.addEventListener('click', () => {
+            video.currentTime -= 10;
+        });
+
+        skipForward.addEventListener('click', () => {
+            video.currentTime += 10;
+        });
+
+        // Volume
+        volumeSlider.addEventListener('input', function() {
+            video.volume = volumeSlider.value;
+            updateVolumeIcon();
+        });
+
+        muteToggle.addEventListener('click', function() {
+            video.muted = !video.muted;
+            updateVolumeIcon();
+        });
+
+        function updateVolumeIcon() {
+            if (video.muted || video.volume === 0) {
+                volumeIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            } else {
+                volumeIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            }
+        }
+
+        // Fullscreen
+        fullscreen.addEventListener('click', function() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                videoContainer.requestFullscreen();
+            }
+        });
+
+        // Show/hide controls
+        videoContainer.addEventListener('mouseenter', function() {
+            controls.style.opacity = '1';
+            clearTimeout(controlsTimeout);
+        });
+
+        videoContainer.addEventListener('mouseleave', function() {
+            if (isPlaying) {
+                controlsTimeout = setTimeout(() => {
+                    controls.style.opacity = '0';
+                }, 2000);
+            }
+        });
+
+        videoContainer.addEventListener('mousemove', function() {
+            controls.style.opacity = '1';
+            clearTimeout(controlsTimeout);
+            if (isPlaying) {
+                controlsTimeout = setTimeout(() => {
+                    controls.style.opacity = '0';
+                }, 2000);
+            }
+        });
+
+        // Reset on video end
+        video.addEventListener('ended', function() {
+            isPlaying = false;
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
